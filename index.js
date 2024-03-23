@@ -21,14 +21,13 @@ app.get("/gltf", async (req, res) => {
       responseType: "json",
     });
 
-    //
     const gltfJson = response.data;
-
-    console.log("Gltf file: ", gltfJson);
-
     const modifiedGltfJson = modifyGltf(gltfJson, newTextureUrl);
+    const modifiedGltfString = JSON.stringify(modifiedGltfJson);
 
-    res.json(modifiedGltfJson);
+    const buffer = Buffer.from(modifiedGltfString, "utf8");
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.send(buffer);
   } catch (error) {
     console.error("Error downloading or modifying GLTF file:", error);
     res.status(500).send("Internal Server Error");
