@@ -1,7 +1,15 @@
 const express = require("express");
+require("dotenv").config();
 const axios = require("axios");
 const app = express();
 const port = process.env.PORT || 3000;
+
+const { createClient } = require("@supabase/supabase-js");
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function modifyGltf(gltfJson, newTextureUrl) {
   gltfJson.images[0].uri = newTextureUrl;
@@ -32,6 +40,37 @@ app.get("/gltf", async (req, res) => {
     res.send(buffer);
   } catch (error) {
     console.error("Error downloading or modifying GLTF file:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/create-gltf", async (req, res) => {
+  const newTextureUrl = req.query.textureUrl;
+  const gltfUrl = req.query.gltfUrl;
+
+  if (!newTextureUrl || !gltfUrl) {
+    return res.status(400).send("Texture URL and GLTF URL are required");
+  }
+
+  try {
+    const response = await axios.get(gltfUrl, { responseType: "arraybuffer" });
+    const gltfJson = JSON.parse(response.data);
+    const modifiedGltfJson = modifyGltf(gltfJson, newTextureUrl);
+    const modifiedGltfString = JSON.stringify(modifiedGltfJson);
+
+    const fileName = `greeting_card/${Date.now()}-card.gltf`;
+    const { error: uploadError } = await supabase.storage
+      .from("gifts")
+      .upload(fileName, modifiedGltfString, {
+        contentType: "model/gltf+json",
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    res.send({ message: "GLTF file uploaded successfully", path: fileName });
+  } catch (error) {
+    console.error("Error processing GLTF file:", error);
     res.status(500).send("Internal Server Error");
   }
 });
