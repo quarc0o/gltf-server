@@ -25,7 +25,7 @@ app.get("/gltf", async (req, res) => {
     res.json(modifiedGltfJson);
   } catch (error) {
     console.error("Error reading or modifying GLTF file:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).send("Internal Server Error: ", error);
   }
 });
 
