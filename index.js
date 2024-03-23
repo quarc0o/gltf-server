@@ -27,6 +27,8 @@ app.get("/gltf", async (req, res) => {
 
     const buffer = Buffer.from(modifiedGltfString, "utf8");
     res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Access-Control-Allow-Credentials", true);
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(buffer);
   } catch (error) {
     console.error("Error downloading or modifying GLTF file:", error);
