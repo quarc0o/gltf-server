@@ -1,6 +1,6 @@
 const express = require("express");
+const axios = require("axios");
 const app = express();
-const fs = require("fs").promises;
 const port = process.env.PORT || 3000;
 
 function modifyGltf(gltfJson, newTextureUrl) {
@@ -10,13 +10,18 @@ function modifyGltf(gltfJson, newTextureUrl) {
 
 app.get("/gltf", async (req, res) => {
   const newTextureUrl = req.query.textureUrl;
-  if (!newTextureUrl) {
-    return res.status(400).send("Texture URL is required");
+  const gltfUrl = req.query.gltfUrl;
+
+  if (!newTextureUrl || !gltfUrl) {
+    return res.status(400).send("Texture URL and GLTF URL are required");
   }
 
   try {
-    const data = await fs.readFile("./assets/card.gltf", "utf8");
-    const gltfJson = JSON.parse(data);
+    const response = await axios.get(gltfUrl, {
+      responseType: "json",
+    });
+
+    const gltfJson = response.data;
 
     console.log("Gltf file: ", gltfJson);
 
@@ -24,8 +29,8 @@ app.get("/gltf", async (req, res) => {
 
     res.json(modifiedGltfJson);
   } catch (error) {
-    console.error("Error reading or modifying GLTF file:", error);
-    res.status(500).send("Internal Server Error: ", error);
+    console.error("Error downloading or modifying GLTF file:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
