@@ -21,6 +21,7 @@ app.get("/gltf", async (req, res) => {
       responseType: "json",
     });
 
+    //
     const gltfJson = response.data;
 
     console.log("Gltf file: ", gltfJson);
