@@ -47,6 +47,7 @@ app.get("/gltf", async (req, res) => {
 app.get("/create-gltf", async (req, res) => {
   const newTextureUrl = req.query.textureUrl;
   const gltfUrl = req.query.gltfUrl;
+  const giftId = req.query.giftId;
 
   if (!newTextureUrl || !gltfUrl) {
     return res.status(400).send("Texture URL and GLTF URL are required");
@@ -58,7 +59,7 @@ app.get("/create-gltf", async (req, res) => {
     const modifiedGltfJson = modifyGltf(gltfJson, newTextureUrl);
     const modifiedGltfString = JSON.stringify(modifiedGltfJson);
 
-    const fileName = `greeting_card/${Date.now()}-card.gltf`;
+    const fileName = `${giftId}/greeting-card.gltf`;
     const { error: uploadError } = await supabase.storage
       .from("gifts")
       .upload(fileName, modifiedGltfString, {
